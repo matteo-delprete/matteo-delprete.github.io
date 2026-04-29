@@ -1,0 +1,89 @@
+/* Tipografia */
+
+body {
+  font-family: "Noto Sans", sans-serif;
+  font-size: 16px;
+  line-height: 1.6;
+
+  color: #222;
+  background: #fafafa;
+
+  margin: 0;
+  padding: 0;
+}
+
+/* Layout */
+
+main {
+  max-width: 700px;
+  margin: 40px auto;
+  padding: 0 20px;
+}
+
+/* Titoli */
+
+h1, h2, h3, h4 {
+  margin-top: 1.5em;
+  margin-bottom: 0.5em;
+
+  letter-spacing: -0.01em;
+}
+
+h1 {
+  font-size: 2rem;
+  font-weight: 600;
+}
+
+h2 {
+  font-size: 1.5rem;
+  font-weight: 500;
+}
+
+h3 {
+  font-size: 1.2rem;
+  font-weight: 500;
+}
+
+/* Corpo del testo */
+
+p {
+  margin-bottom: 1em;
+}
+
+/* Link */
+
+a {
+  color: #222;
+  text-decoration: underline;
+}
+
+a:hover {
+  color: #000;
+}
+
+/* Liste */
+
+ul, ol {
+  padding-left: 20px;
+  margin-bottom: 1em;
+}
+
+/* Supporto lingue */
+/* Arabo */
+[lang="ar"] {
+  direction: rtl;
+  text-align: right;
+}
+
+/* Ritocchi */
+
+body {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+::selection {
+  background: #ddd;
+}
+
+/* NB DA FINIRE! */
