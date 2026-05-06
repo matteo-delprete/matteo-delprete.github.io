@@ -83,18 +83,20 @@ function buildRootMenu() {
   document.getElementById("sidebar").innerHTML = `<div class="sidebar-inner">${html}</div>`;
 }
 
-function startTransition(callback) {
+async function startTransition(callback) {
   const railTime = parseFloat(
     getComputedStyle(document.documentElement)
       .getPropertyValue("--transition-rail-time")
   );
   document.body.classList.add("is-transitioning");
-  setTimeout(() => {
-    callback();
-    setTimeout(() => {
-      document.body.classList.remove("is-transitioning");
-    }, 80);
-  }, railTime);
+  /* wait closing */
+  await new Promise(resolve =>
+    setTimeout(resolve, railTime)
+  );
+  /* wait content update */
+  await callback();
+  /* reopen */
+  document.body.classList.remove("is-transitioning");
 }
 
 /* LOAD PAGE FROM URL */
@@ -103,7 +105,7 @@ function loadFromURL() {
   const slug = params.get("page");
   /* HOMEPAGE */
   if (!slug) {
-    startTransition(() => {
+    startTransition(async () => {
       fetch("pages/home.html")
         .then(r => r.text())
         .then(html => {
@@ -118,14 +120,12 @@ function loadFromURL() {
   /* INVALID PAGE */
   if (!map[slug]) return;
   const item = map[slug];
-  startTransition(() => {
-    fetch(item.file)
-      .then(r => r.text())
-      .then(html => {
-        document.getElementById("main").innerHTML = html;
-        updateBreadcrumb(slug);
-        buildContextMenu(slug);
-      });
+  startTransition(async () => {
+    const response = await fetch(item.file);
+    const html = await response.text();
+    document.getElementById("main").innerHTML = html;
+    updateBreadcrumb(slug);
+    buildContextMenu(slug);
   });
 }
 
