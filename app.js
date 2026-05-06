@@ -17,7 +17,6 @@ function buildContextMenu(slug) {
   const path = findPath(SITE, slug);
   if (!path) return;
   const current = path[path.length - 1];
-  const parent  = path[path.length - 2];
   let html = "";
   /* GO UP */
   if (path.length > 1) {
@@ -62,7 +61,7 @@ function buildContextMenu(slug) {
     });
     html += "</ul>";
   }
-  document.getElementById("sidebar").innerHTML = html;
+  document.getElementById("sidebar").innerHTML = `<div class="sidebar-inner">${html}</div>`;
   highlightActive(slug);
 }
 
@@ -81,7 +80,21 @@ function buildRootMenu() {
     }
   });
   html += "</ul>";
-  document.getElementById("sidebar").innerHTML = html;
+  document.getElementById("sidebar").innerHTML = `<div class="sidebar-inner">${html}</div>`;
+}
+
+function startTransition(callback) {
+  const railTime = parseFloat(
+    getComputedStyle(document.documentElement)
+      .getPropertyValue("--transition-rail-time")
+  );
+  document.body.classList.add("is-transitioning");
+  setTimeout(() => {
+    callback();
+    setTimeout(() => {
+      document.body.classList.remove("is-transitioning");
+    }, 80);
+  }, railTime);
 }
 
 /* LOAD PAGE FROM URL */
@@ -90,20 +103,30 @@ function loadFromURL() {
   const slug = params.get("page");
   /* HOMEPAGE */
   if (!slug) {
-    document.getElementById("topbar").innerHTML =
-      `<a href="index.html">Home</a>`;
-      buildRootMenu();
+    startTransition(() => {
+      fetch("pages/home.html")
+        .then(r => r.text())
+        .then(html => {
+          document.getElementById("main").innerHTML = html;
+          document.getElementById("topbar").innerHTML =
+            `<a href="index.html">Home</a>`;
+          buildRootMenu();
+        });
+    });
     return;
   }
+  /* INVALID PAGE */
   if (!map[slug]) return;
   const item = map[slug];
-  fetch(item.file)
-    .then(r => r.text())
-    .then(html => {
-      document.getElementById("main").innerHTML = html;
-      updateBreadcrumb(slug);
-      buildContextMenu(slug);
-    });
+  startTransition(() => {
+    fetch(item.file)
+      .then(r => r.text())
+      .then(html => {
+        document.getElementById("main").innerHTML = html;
+        updateBreadcrumb(slug);
+        buildContextMenu(slug);
+      });
+  });
 }
 
 /* FIND PATH IN TREE */
@@ -139,6 +162,42 @@ function highlightActive(slug) {
   document.querySelectorAll("#sidebar a").forEach(a => {
     a.classList.toggle("active", a.dataset.slug === slug);
   });
+}
+
+document.addEventListener("click", event => {
+  const link = event.target.closest("a");
+  if (!link) return;
+  const href = link.getAttribute("href");
+  if (!href) return;
+  if (
+    href.startsWith("?page=") ||
+    href === "index.html"
+  ) {
+    event.preventDefault();
+    navigate(href);
+  }
+});
+
+window.addEventListener("popstate", () => {
+  loadFromURL();
+});
+
+function navigate(url) {
+  /* avoid useless reload */
+  const current =
+    window.location.pathname +
+    window.location.search;
+  if (
+    url === current ||
+    (
+      url === "index.html" &&
+      !window.location.search
+    )
+  ) {
+    return;
+  }
+  history.pushState({}, "", url);
+  loadFromURL();
 }
 
 /* INIT */
